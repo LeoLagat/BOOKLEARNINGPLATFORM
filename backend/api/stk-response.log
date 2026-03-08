@@ -1,0 +1,29 @@
+2026-03-06T13:42:59+03:00 RESPONSE: upstream connect error or disconnect/reset before headers. retried and the latest reset reason: connection timeout
+2026-03-06T13:46:04+03:00 CALLBACK CHECK failed (http=200)
+2026-03-06T13:48:14+03:00 RESPONSE: {
+            "MerchantRequestID":"4b35-428f-91a0-cda956f4639617529",
+            "CheckoutRequestID":"ws_CO_06032026134814052727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-06T13:49:01+03:00 RESPONSE: {
+            "MerchantRequestID":"14af-407e-ba63-b73603c69b7f17792",
+            "CheckoutRequestID":"ws_CO_06032026134900354727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-06T13:52:57+03:00 RESPONSE: upstream connect error or disconnect/reset before headers. retried and the latest reset reason: connection timeout
+2026-03-06T14:01:46+03:00 RESPONSE: {
+            "MerchantRequestID":"14af-407e-ba63-b73603c69b7f18019",
+            "CheckoutRequestID":"ws_CO_06032026140146823727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-07T10:15:53+03:00 CALLBACK CHECK failed (http=404, err="")
+2026-03-07T10:17:57+03:00 RESPONSE: upstream connect error or disconnect/reset before headers. retried and the latest reset reason: connection timeout
