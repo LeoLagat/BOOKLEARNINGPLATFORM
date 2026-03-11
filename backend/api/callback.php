@@ -31,7 +31,7 @@ if(isset($response->Body->stkCallback->ResultCode) && $response->Body->stkCallba
     } else {
         file_put_contents("mpesa_callback.txt", "Update Failed: " . $conn->error . "\n", FILE_APPEND);
     }
-
+// 4. Close the statement
     $stmt->close();
 } else {
     // Log failed transactions (ResultCode != 0)
