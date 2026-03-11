@@ -75,3 +75,21 @@ Transaction failed or cancelled by user.
 Update Success for Receipt: UC66L8HMI8
 
 Transaction failed or cancelled by user.
+
+Transaction Failed. ResultCode: Unknown
+
+Transaction Failed. ResultCode: Unknown
+{"Body":{"stkCallback":{"MerchantRequestID":"7541-400c-92a5-84c89cc4b166846","CheckoutRequestID":"ws_CO_08032026210236676727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1},{"Name":"MpesaReceiptNumber","Value":"UC86L8PZKF"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260308210245},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UC86L8PZKF
+
+Transaction Failed. ResultCode: Unknown
+{"Body":{"stkCallback":{"MerchantRequestID":"7541-400c-92a5-84c89cc4b166859","CheckoutRequestID":"ws_CO_08032026210318129727516126","ResultCode":1032,"ResultDesc":"Request Cancelled by user."}}}
+Transaction Failed. ResultCode: 1032
+
+Transaction Failed. ResultCode: Unknown
+{"Body":{"stkCallback":{"MerchantRequestID":"7541-400c-92a5-84c89cc4b166966","CheckoutRequestID":"ws_CO_08032026211054178727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":20},{"Name":"MpesaReceiptNumber","Value":"UC86L8Q3AI"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260308211101},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UC86L8Q3AI
+
+Transaction Failed. ResultCode: Unknown
+{"Body":{"stkCallback":{"MerchantRequestID":"abb0-4b4c-8ca1-b66123edd18418623","CheckoutRequestID":"ws_CO_08032026211201468727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1},{"Name":"MpesaReceiptNumber","Value":"UC86L8PY9G"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260308211208},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UC86L8PY9G

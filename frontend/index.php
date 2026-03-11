@@ -595,14 +595,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if (isLoggedIn) {
             const currentPlan = "<?php echo $_SESSION['membership'] ?? ''; ?>";
-            if (plan === currentPlan) {
+            const paymentStatus = "<?php echo $_SESSION['payment_status'] ?? ''; ?>"; // Get the payment status
+            
+            // Only block them if the plans match AND they have actually paid
+            if (plan === currentPlan && paymentStatus === 'Paid') {
                 showToast("You are already subscribed to the " + plan + " plan.");
                 return;
             }
 
             // Show custom confirm dialog
             pendingUpgradePlan = plan;
-            document.getElementById('confirm-text').innerText = "You are already logged in. Do you want to upgrade to " + plan + " for KES " + amount + "?";
+            
+            // Adjust the text slightly if they are just retrying a pending payment
+            if (plan === currentPlan && paymentStatus === 'Pending') {
+                document.getElementById('confirm-text').innerText = "Do you want to retry your payment of KES " + amount + " for the " + plan + " plan?";
+            } else {
+                document.getElementById('confirm-text').innerText = "You are already logged in. Do you want to upgrade to " + plan + " for KES " + amount + "?";
+            }
+            
             document.getElementById('confirm-modal').classList.add('show-modal');
         } else {
             document.getElementById("membershipInput").value = plan;
@@ -610,7 +620,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             showSection('registrationSection');
         }
     }
-
     function confirmUpgrade() {
         const form = document.createElement('form');
         form.method = 'POST';

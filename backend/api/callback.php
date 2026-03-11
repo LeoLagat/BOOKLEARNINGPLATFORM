@@ -35,6 +35,17 @@ if(isset($response->Body->stkCallback->ResultCode) && $response->Body->stkCallba
     $stmt->close();
 } else {
     // Log failed transactions (ResultCode != 0)
-    file_put_contents("mpesa_callback.txt", "Transaction failed or cancelled by user.\n", FILE_APPEND);
-}
+$resultCode = $response->Body->stkCallback->ResultCode ?? "Unknown";
+
+file_put_contents(
+    "mpesa_callback.txt",
+    "Transaction Failed. ResultCode: $resultCode\n",
+    FILE_APPEND);
+}///change this to log the failure reason if available
+header('Content-Type: application/json');
+
+echo json_encode([
+    "ResultCode" => 0,
+    "ResultDesc" => "Callback received successfully"
+]);
 ?>
