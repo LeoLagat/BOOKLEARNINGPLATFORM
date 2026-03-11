@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// --- 1. SECURITY LOCK ---
+// --- 1. SECURITY LOCK ---___
 if (!isset($_SESSION["fullname"]) && !isset($_GET['action']) && $_SERVER["REQUEST_METHOD"] != "POST") {
     header("Location: login_view.php");
     exit();
