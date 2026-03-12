@@ -75,3 +75,27 @@ Transaction failed or cancelled by user.
 Update Success for Receipt: UC66L8HMI8
 
 Transaction failed or cancelled by user.
+
+Transaction failed or cancelled by user.
+{"Body":{"stkCallback":{"MerchantRequestID":"c294-4cc8-96b8-155d6d00089b13961","CheckoutRequestID":"ws_CO_11032026192110724727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1},{"Name":"MpesaReceiptNumber","Value":"UCB6L8ZNPI"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260311192117},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UCB6L8ZNPI
+
+Transaction failed or cancelled by user.
+
+Transaction failed or cancelled by user.
+{"Body":{"stkCallback":{"MerchantRequestID":"1c6e-40f4-9b6b-c8536063e2ff40886","CheckoutRequestID":"ws_CO_12032026203412489727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":20},{"Name":"MpesaReceiptNumber","Value":"UCC6L93BPC"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260312203423},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UCC6L93BPC
+
+Transaction failed or cancelled by user.
+{"Body":{"stkCallback":{"MerchantRequestID":"bd50-47d3-8d48-ad9aef2b10ce70","CheckoutRequestID":"ws_CO_12032026204523405727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1},{"Name":"MpesaReceiptNumber","Value":"UCC6L93ADT"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260312204534},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UCC6L93ADT
+
+Transaction failed or cancelled by user.
+
+Transaction failed or cancelled by user.
+{"Body":{"stkCallback":{"MerchantRequestID":"1c6e-40f4-9b6b-c8536063e2ff42021","CheckoutRequestID":"ws_CO_12032026205718475727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":20},{"Name":"MpesaReceiptNumber","Value":"UCC6L93IT4"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260312205726},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UCC6L93IT4
+
+Transaction failed or cancelled by user.
+{"Body":{"stkCallback":{"MerchantRequestID":"1c6e-40f4-9b6b-c8536063e2ff42499","CheckoutRequestID":"ws_CO_12032026210206195727516126","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1},{"Name":"MpesaReceiptNumber","Value":"UCC6L93G7D"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20260312210213},{"Name":"PhoneNumber","Value":254727516126}]}}}}
+Update Success for Receipt: UCC6L93G7D

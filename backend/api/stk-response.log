@@ -27,3 +27,47 @@
         
 2026-03-07T10:15:53+03:00 CALLBACK CHECK failed (http=404, err="")
 2026-03-07T10:17:57+03:00 RESPONSE: upstream connect error or disconnect/reset before headers. retried and the latest reset reason: connection timeout
+2026-03-11T19:19:44+03:00 CALLBACK CHECK failed (http=404, err="")
+2026-03-11T19:20:30+03:00 CALLBACK CHECK failed (http=404, err="")
+2026-03-11T19:21:10+03:00 RESPONSE: {
+            "MerchantRequestID":"c294-4cc8-96b8-155d6d00089b13961",
+            "CheckoutRequestID":"ws_CO_11032026192110724727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-12T20:21:40+03:00 CALLBACK CHECK failed (http=404, err="")
+2026-03-12T20:34:14+03:00 RESPONSE: {
+            "MerchantRequestID":"1c6e-40f4-9b6b-c8536063e2ff40886",
+            "CheckoutRequestID":"ws_CO_12032026203412489727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-12T20:45:26+03:00 RESPONSE: {
+            "MerchantRequestID":"bd50-47d3-8d48-ad9aef2b10ce70",
+            "CheckoutRequestID":"ws_CO_12032026204523405727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-12T20:55:38+03:00 RESPONSE: 
+2026-03-12T20:57:18+03:00 RESPONSE: {
+            "MerchantRequestID":"1c6e-40f4-9b6b-c8536063e2ff42021",
+            "CheckoutRequestID":"ws_CO_12032026205718475727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-12T21:02:06+03:00 RESPONSE: {
+            "MerchantRequestID":"1c6e-40f4-9b6b-c8536063e2ff42499",
+            "CheckoutRequestID":"ws_CO_12032026210206195727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
