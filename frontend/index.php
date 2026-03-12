@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     body { 
         font-family: "Segoe UI", Arial, sans-serif; 
         margin: 0; 
-        background: radial-gradient(circle at top left, #eef7ff 0%, #f7fbff 45%, #fff6fb 100%);
+        background: radial-gradient(circle at top left, AliceBlue 0%, GhostWhite 45%, LavenderBlush 100%);
         color: var(--text); 
         scroll-behavior: smooth; 
         display: flex;
@@ -162,7 +162,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     nav button {
         background: var(--surface);
-        border: 1px solid #e5e7eb;
+        border: 1px solid Gainsboro;
         padding: 12px 22px; 
         border-radius: 12px;
         cursor: pointer; 
@@ -291,7 +291,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     .list-none { list-style: none; padding: 0; }
     .preview-text { line-height: 1.6; color: DarkSlateGray; font-size: 1.1rem; }
-    .status-box { background: var(--surface-soft); padding: 18px; border-radius: 14px; margin: 15px 0; border: 1px solid #dbe2ea; max-width: 620px; box-shadow: var(--shadow-soft); }
+    .status-box { background: var(--surface-soft); padding: 18px; border-radius: 14px; margin: 15px 0; border: 1px solid LightSteelBlue; max-width: 620px; box-shadow: var(--shadow-soft); }
     .status-text { margin: 0 0 12px 0; font-family: sans-serif; }
     .status-badge {
         display: inline-flex;
@@ -303,9 +303,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         border: 1px solid transparent;
     }
     .status-paid { background: HoneyDew; color: ForestGreen; border-color: LightGreen; }
-    .status-pending { background: #fff7e6; color: #b45309; border-color: #fcd34d; }
+    .status-pending { background: FloralWhite; color: Sienna; border-color: Gold; }
     .status-helper { margin: 0 0 10px; color: var(--muted); font-size: 0.95rem; }
-    .info-box { background: AliceBlue; padding: 18px; border-radius: 12px; color: MidnightBlue; border: 1px solid #cbd5e1; max-width: 720px; }
+    .info-box { background: AliceBlue; padding: 18px; border-radius: 12px; color: MidnightBlue; border: 1px solid LightBlue; max-width: 720px; }
     .hidden { display: none !important; }
 
     /* Loader */

@@ -217,7 +217,7 @@ if (isset($res_data->ResponseCode) && $res_data->ResponseCode == "0") {
             .spinner {
                 width: 48px;
                 height: 48px;
-                border: 5px solid #dbeafe;
+                border: 5px solid AliceBlue;
                 border-top: 5px solid RoyalBlue;
                 border-radius: 50%;
                 margin: 0 auto 18px;

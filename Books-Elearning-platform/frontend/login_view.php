@@ -8,15 +8,15 @@
         body { 
             font-family: "Segoe UI", Arial, sans-serif; 
             margin: 0; 
-            background: linear-gradient(120deg, #F0F8FF, #FFF0F5); 
+            background: linear-gradient(120deg, AliceBlue, LavenderBlush); 
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #2F4F4F;
+            color: DarkSlateGray;
         }
         .login-card { 
-            background: #FFFFFF; 
+            background: White; 
             padding: 40px; 
             border-radius: 20px; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
@@ -24,13 +24,13 @@
             max-width: 400px;
             box-sizing: border-box;
         }
-        h1 { color: #1E293B; text-align: center; margin-bottom: 10px; }
-        p.subtitle { text-align: center; color: #6B7280; margin-bottom: 30px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #1E293B; }
+        h1 { color: MidnightBlue; text-align: center; margin-bottom: 10px; }
+        p.subtitle { text-align: center; color: SlateGray; margin-bottom: 30px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: MidnightBlue; }
         input {
             padding: 12px; 
             border-radius: 10px; 
-            border: 1px solid #D1D5DB; 
+            border: 1px solid LightGray; 
             margin-bottom: 20px; 
             width: 100%; 
             box-sizing: border-box;
@@ -38,7 +38,7 @@
         }
         input:focus {
             outline: none;
-            border-color: #4F46E5;
+            border-color: SlateBlue;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
         button { 
@@ -46,19 +46,19 @@
             padding: 15px; 
             border: none; 
             border-radius: 10px; 
-            background: #4F46E5; 
-            color: #FFFFFF; 
+            background: SlateBlue; 
+            color: White; 
             font-weight: bold; 
             font-size: 1rem;
             cursor: pointer; 
             transition: 0.3s;
         }
         button:hover { 
-            background: #3B82F6; 
+            background: DodgerBlue; 
             transform: translateY(-2px);
         }
         .footer-links { text-align: center; margin-top: 20px; font-size: 0.9rem; }
-        .footer-links a { color: #4F46E5; text-decoration: none; font-weight: bold; }
+        .footer-links a { color: SlateBlue; text-decoration: none; font-weight: bold; }
         .footer-links a:hover { text-decoration: underline; }
     </style>
 </head>

@@ -1,86 +1,126 @@
-Book and E-Learning Platform
-This project is a comprehensive full-stack web application designed to manage and deliver educational content through a tiered membership model. It features a robust backend for handling user authentication, session management, and automated payment processing via the Safaricom Daraja API.
+# Books E-Learning Platform
 
-System Overview The platform operates on a three-tier access hierarchy:
+A PHP and MySQL learning platform with tiered memberships, protected book access, quiz features, and M-Pesa (Daraja) STK Push payments.
 
-Basic: Instant access to introductory resources upon registration.
+## Features
 
-Premium: Access to intermediate technical and professional development content.
+- Membership tiers: Basic, Premium, and VIP.
+- Login and registration with secure password hashing.
+- M-Pesa STK Push integration for paid plans.
+- Callback-based payment confirmation.
+- Live waiting screen after STK push with auto status polling.
+- Dashboard sync button to refresh payment state.
+- Protected book access based on membership and payment status.
+- Quiz section with multiple questions and score feedback.
+- File integrity checker for uploads.
 
-VIP: Full access to all library resources, including specialized financial and real estate modules.
+## Project Structure
 
-Shutterstock Explore Core Functionalities Tiered Membership Engine: Restricts content visibility based on the user's current subscription level.
+### Backend
 
-Automated Payment Processing: Integration with M-Pesa STK Push for real-time account upgrades and activation.
+- `backend/api/config.php`: MySQL database connection.
+- `backend/api/register.php`: User registration.
+- `backend/api/login.php`: User authentication.
+- `backend/api/logout.php`: Session logout.
+- `backend/api/stkpush.php`: STK push initiation and waiting UI.
+- `backend/api/callback.php`: Safaricom callback handler.
+- `backend/api/payment_status.php`: JSON endpoint for payment polling.
+- `backend/api/books.php`: Protected book download/access route.
 
-Secure Authentication: Implementation of PHP sessions, password hashing, and prepared statements for database security.
+### Frontend
 
-Asynchronous Callbacks: A dedicated listener for Safaricom's API responses to ensure payment confirmation without user intervention.
+- `frontend/index.php`: Main app UI (home, books, membership, quiz, dashboard).
+- `frontend/login_view.php`: Login page.
+- `frontend/check_files.php`: Uploads diagnostic utility.
 
-Asset Integrity Management: Includes diagnostic tools to verify the availability of digital PDF resources within the server filesystem.
+### Assets
 
-Technical Workflow
+- `uploads/`: PDF files used by the platform.
 
-Registration and Authentication Users provide their details through a dynamic registration interface. Basic accounts are activated immediately, while Premium and VIP accounts remain in a Pending state until payment is verified.
+## Requirements
 
-M-Pesa STK Push Sequence When an upgrade or paid registration is initiated:
+- XAMPP or similar (Apache + MySQL + PHP).
+- PHP 8.x recommended.
+- MySQL/MariaDB.
+- Ngrok (for local callback testing with M-Pesa sandbox).
 
-The system generates an OAuth2 access token.
+## Database Setup
 
-An STK Push request is dispatched to the user's mobile device.
+Create a database named `elearning_db`, then run:
 
-The system waits for a response at the defined CallBackURL.
+```sql
+CREATE TABLE users (
+		id INT AUTO_INCREMENT PRIMARY KEY,
+		fullname VARCHAR(100) NOT NULL,
+		email VARCHAR(100) UNIQUE NOT NULL,
+		phone VARCHAR(20) NOT NULL,
+		password VARCHAR(255) NOT NULL,
+		membership ENUM('Basic','Premium','VIP') NOT NULL,
+		payment_status ENUM('Pending','Paid') DEFAULT 'Pending',
+		mpesa_receipt VARCHAR(50) DEFAULT NULL
+);
 
-File Structure Backend Components (/backend/api/) config.php: Database connection configuration using mysqli.
+CREATE TABLE books (
+		id INT AUTO_INCREMENT PRIMARY KEY,
+		title VARCHAR(255) NOT NULL,
+		description TEXT,
+		file_path VARCHAR(255) NOT NULL,
+		membership_required ENUM('Basic','Premium','VIP') NOT NULL
+);
+```
 
-login.php / register.php: User authentication and account creation logic.
+## Configuration
 
-stkpush.php: Coordination of the M-Pesa STK Push request.
+1. Place the project in your web root, for example `C:\xampp\htdocs\Books-Elearning-platform`.
+2. Update database credentials in `backend/api/config.php`.
+3. Set your Daraja sandbox credentials in `backend/api/stkpush.php`.
+4. Ensure upload files exist in `uploads/`.
 
-callback.php: The API listener that processes JSON responses from Safaricom and updates the database.
+## Running the Project
 
-books.php: The content firewall that validates user credentials before serving PDF files.
+1. Start Apache and MySQL from XAMPP.
+2. Open:
+	 `http://localhost/Books-Elearning-platform/frontend/index.php`
+3. Register or log in.
 
-logout.php: Session termination and security cleanup.
+## M-Pesa Flow
 
-Frontend Components (/frontend/) index.php: The primary dashboard and membership management interface.
+1. User selects Premium or VIP.
+2. Membership is set to `Pending` until payment is confirmed.
+3. STK push is sent from `stkpush.php`.
+4. User sees a spinner/waiting page while the app polls `payment_status.php`.
+5. Safaricom callback hits `callback.php` and updates user to `Paid`.
+6. UI auto-redirects to dashboard after confirmation.
 
-login_view.php: Dedicated user login interface.
+## Callback URL Behavior
 
-check_files.php: A utility for verifying the existence of library assets in the uploads/ directory.
+- If `MPESA_CALLBACK_URL` is set, that URL is used.
+- If not set, system tries to infer from current host.
+- On localhost, it attempts to read ngrok tunnel URL from:
+	`http://127.0.0.1:4040/api/tunnels`
+- If no ngrok tunnel is available, payment request stops with a clear error.
 
-Content Assets (/uploads/) The library includes various educational modules such as:
+## Notes for Local Testing
 
-healthy_living.pdf
+- Keep ngrok running during STK tests.
+- Open the app via localhost or ngrok, but ensure callback URL is publicly reachable.
+- Use dashboard Sync button if callback is delayed.
 
-african_recipes.pdf
+## Security Practices Used
 
-python_basics.pdf
+- Password hashing using `password_hash()`.
+- SQL prepared statements to reduce injection risk.
+- Session-based access control for protected routes.
 
-financial_freedom.pdf
+## Troubleshooting
 
-real_estate_101.pdf
+- Callback unreachable:
+	Confirm ngrok is active or set `MPESA_CALLBACK_URL`.
+- Payment remains pending:
+	Check callback logs and use dashboard sync.
+- Books not available:
+	Run `frontend/check_files.php` and verify files in `uploads/`.
 
-Database Configuration The application requires a MySQL database named elearning_db. Use the following schema to initialize the environment:
+## License
 
-SQL CREATE TABLE users ( id INT AUTO_INCREMENT PRIMARY KEY, fullname VARCHAR(100) NOT NULL, email VARCHAR(100) UNIQUE NOT NULL, phone VARCHAR(20) NOT NULL, password VARCHAR(255) NOT NULL, membership ENUM('Basic', 'Premium', 'VIP') NOT NULL, payment_status ENUM('Pending', 'Paid') DEFAULT 'Pending', mpesa_receipt VARCHAR(50) DEFAULT NULL );
-
-CREATE TABLE books ( id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, description TEXT, file_path VARCHAR(255) NOT NULL, membership_required ENUM('Basic', 'Premium', 'VIP') NOT NULL ); Installation and Setup Directory Placement: Clone or move the project files to your local server directory (e.g., htdocs for XAMPP).
-
-Database Import: Execute the SQL schema provided above in your MySQL environment.
-
-API Credentials:
-
-Update backend/api/config.php with your local database password.
-
-Update backend/api/stkpush.php with your M-Pesa Consumer Key and Consumer Secret.
-
-Callback Configuration: For local testing, use a tunneling service like Ngrok to expose your local server to the internet. Update the $CallBackURL in stkpush.php to match your public URL.
-
-Asset Check: Run frontend/check_files.php in your browser to ensure all PDF books are correctly located in the uploads/ folder.
-
-Security Implementation Password Encryption: All passwords are processed via password_hash() using the BCRYPT algorithm.
-
-SQL Injection Protection: All database queries utilize Prepared Statements to mitigate injection risks.
-
-Session Guard: Dashboard access and book downloads are protected by server-side session validation.
+Use and modify for learning or internal project use.
