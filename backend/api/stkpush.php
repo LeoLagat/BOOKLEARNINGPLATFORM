@@ -21,6 +21,20 @@ if (substr($phone, 0, 1) == '0') {
     $phone = '254' . $phone;
 }
 
+// Prevent accidental duplicate STK pushes for the same phone/amount in a short period.
+$cooldownSeconds = 120;
+if (
+    isset($_SESSION['last_stk_phone'], $_SESSION['last_stk_amount'], $_SESSION['last_stk_time']) &&
+    $_SESSION['last_stk_phone'] === $phone &&
+    (int)$_SESSION['last_stk_amount'] === (int)$amount
+) {
+    $elapsed = time() - (int)$_SESSION['last_stk_time'];
+    if ($elapsed < $cooldownSeconds) {
+        $wait = $cooldownSeconds - $elapsed;
+        die("A payment prompt was sent recently. Please wait {$wait} seconds, then click Sync My Payment Status before retrying.");
+    }
+}
+
 // 3. Get Access Token
 $credentials = base64_encode($consumerKey . ":" . $consumerSecret);
 $ch = curl_init();
@@ -47,20 +61,58 @@ date_default_timezone_set('Africa/Nairobi');
 $Timestamp = date('YmdHis');
 $Password = base64_encode($BusinessShortCode . $Passkey . $Timestamp);
 
-// 5. verify callback is reachable (helps diagnose timeout issues)
-$callbackUrl = "https://triseptate-unproperly-crew.ngrok-free.dev/Books-Elearning-platform/backend/api/callback.php";
+// 5. Resolve callback URL.
+// Priority: explicit environment variable, otherwise infer from the active request host.
+$configuredCallbackUrl = getenv('MPESA_CALLBACK_URL');
+if ($configuredCallbackUrl !== false && trim($configuredCallbackUrl) !== '') {
+    $callbackUrl = trim($configuredCallbackUrl);
+} else {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $callbackPath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\') . '/callback.php';
+
+    if ($host !== '' && preg_match('/^(localhost|127\\.0\\.0\\.1)(:\\d+)?$/i', $host)) {
+        // Dev fallback: if ngrok is running locally, use its first HTTPS tunnel.
+        $tunnelUrl = '';
+        $ngrokApi = @file_get_contents('http://127.0.0.1:4040/api/tunnels');
+        if ($ngrokApi !== false) {
+            $ngrokData = json_decode($ngrokApi, true);
+            if (isset($ngrokData['tunnels']) && is_array($ngrokData['tunnels'])) {
+                foreach ($ngrokData['tunnels'] as $tunnel) {
+                    if (!empty($tunnel['public_url']) && stripos($tunnel['public_url'], 'https://') === 0) {
+                        $tunnelUrl = rtrim($tunnel['public_url'], '/');
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($tunnelUrl !== '') {
+            $callbackUrl = $tunnelUrl . $callbackPath;
+        } else {
+            die("Localhost callback detected and no ngrok HTTPS tunnel found. Start ngrok or set MPESA_CALLBACK_URL.");
+        }
+    } else {
+        $callbackUrl = $host !== '' ? "$scheme://$host$callbackPath" : '';
+    }
+}
+
+if ($callbackUrl === '') {
+    die("Unable to determine callback URL. Set MPESA_CALLBACK_URL to your public callback endpoint.");
+}
+
+// verify callback is reachable (helps diagnose timeout issues)
 $check = curl_init($callbackUrl);
-curl_setopt($check, CURLOPT_NOBODY, true);
-curl_setopt($check, CURLOPT_TIMEOUT, 5);
+curl_setopt($check, CURLOPT_TIMEOUT, 8);
 curl_setopt($check, CURLOPT_RETURNTRANSFER, true);
 $result = curl_exec($check);
 $http = curl_getinfo($check, CURLINFO_HTTP_CODE);
 $error = curl_error($check);
 curl_close($check);
-// treat as failure only when HTTP status is not 200 or curl_exec failed entirely
-if ($result === false || $http !== 200) {
+// treat as failure when request cannot be completed or callback responds 4xx/5xx
+if ($result === false || $http >= 400 || $http === 0) {
     // log full diagnostics
-    file_put_contents(__DIR__ . '/stk-response.log', date('c') . " CALLBACK CHECK failed (http=$http, err=\"$error\")\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/stk-response.log', date('c') . " CALLBACK CHECK failed (url=$callbackUrl, http=$http, err=\"$error\")\n", FILE_APPEND);
     die("Callback URL unreachable (HTTP $http). Error: $error. Please ensure the ngrok tunnel is active and the URL is correct.");
 }
 
@@ -84,8 +136,8 @@ $data = [
     "PhoneNumber"       => $phone,
     "PartyA"            => $phone,
     "PartyB"            => $BusinessShortCode,
-    // make sure callback address matches your project directory (case‑sensitive on remote hosts)
-    "CallBackURL"       => "https://triseptate-unproperly-crew.ngrok-free.dev/Books-Elearning-platform/backend/api/callback.php",
+    // use one resolved callback URL source for both validation and STK request
+    "CallBackURL"       => $callbackUrl,
     "AccountReference"  => "BookPlatform",
     "TransactionDesc"   => "Membership Upgrade"
 ];
@@ -113,13 +165,16 @@ curl_close($curl);
 
 // 6. User Feedback
 if (isset($res_data->ResponseCode) && $res_data->ResponseCode == "0") {
+    $_SESSION['last_stk_phone'] = $phone;
+    $_SESSION['last_stk_amount'] = (int)$amount;
+    $_SESSION['last_stk_time'] = time();
     ?>
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Payment Sent</title>
+        <title>Waiting for Payment Confirmation</title>
         <style>
             body { 
                 font-family: "Segoe UI", Arial, sans-serif; 
@@ -145,7 +200,7 @@ if (isset($res_data->ResponseCode) && $res_data->ResponseCode == "0") {
             .icon-box {
                 width: 80px;
                 height: 80px;
-                background: MediumSeaGreen;
+                background: RoyalBlue;
                 color: White;
                 border-radius: 50%;
                 display: flex;
@@ -153,15 +208,40 @@ if (isset($res_data->ResponseCode) && $res_data->ResponseCode == "0") {
                 justify-content: center;
                 font-size: 40px;
                 margin: 0 auto 20px;
-                box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+                box-shadow: 0 10px 20px rgba(65, 105, 225, 0.22);
             }
             h2 { color: MidnightBlue; margin: 0 0 15px 0; }
             p { color: SlateGray; line-height: 1.6; margin-bottom: 25px; font-size: 1.05rem; }
             .highlight { color: MediumSeaGreen; font-weight: bold; }
+
+            .spinner {
+                width: 48px;
+                height: 48px;
+                border: 5px solid #dbeafe;
+                border-top: 5px solid RoyalBlue;
+                border-radius: 50%;
+                margin: 0 auto 18px;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            .status-pill {
+                display: inline-block;
+                background: AliceBlue;
+                color: RoyalBlue;
+                border: 1px solid LightBlue;
+                border-radius: 999px;
+                padding: 8px 14px;
+                font-weight: 600;
+                margin-bottom: 18px;
+            }
             
             .btn-home {
                 display: inline-block;
-                background: MediumSeaGreen;
+                background: SlateGray;
                 color: White;
                 padding: 14px 30px;
                 border-radius: 10px;
@@ -172,23 +252,67 @@ if (isset($res_data->ResponseCode) && $res_data->ResponseCode == "0") {
                 box-sizing: border-box;
             }
             .btn-home:hover {
-                background: SeaGreen;
+                background: DimGray;
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+                box-shadow: 0 5px 15px rgba(55, 65, 81, 0.25);
             }
         </style>
     </head>
     <body>
         <div class="success-card">
-            <div class="icon-box">✓</div>
-            <h2>Push Sent!</h2>
+            <div class="icon-box">⌛</div>
+            <h2>STK Push Sent</h2>
+            <div class="spinner" aria-hidden="true"></div>
+            <div id="paymentState" class="status-pill">Waiting for M-Pesa confirmation...</div>
             <p>
                 A payment request for <span class="highlight">KES <?php echo number_format($amount, 2); ?></span> 
                 has been sent to <span class="highlight"><?php echo $phone; ?></span>.
             </p>
-            <p>Please enter your <b>M-Pesa PIN</b> on your phone to complete the transaction.</p>
-            <a href="../../frontend/index.php" class="btn-home">Return to Home</a>
+            <p id="paymentHint">Please enter your <b>M-Pesa PIN</b> on your phone. We are checking confirmation automatically.</p>
+            <a href="../../frontend/index.php" class="btn-home">Back to Dashboard</a>
         </div>
+
+        <script>
+            const statusEl = document.getElementById('paymentState');
+            const hintEl = document.getElementById('paymentHint');
+            let checks = 0;
+            const maxChecks = 40; // ~2 minutes at 3s interval
+
+            async function pollPaymentStatus() {
+                checks++;
+                try {
+                    const res = await fetch('payment_status.php?phone=<?php echo urlencode($phone); ?>', { cache: 'no-store' });
+                    const data = await res.json();
+
+                    if (data && data.ok && data.payment_status === 'Paid') {
+                        statusEl.textContent = 'Payment confirmed. Redirecting...';
+                        statusEl.style.background = 'HoneyDew';
+                        statusEl.style.color = 'ForestGreen';
+                        hintEl.innerHTML = 'Your payment has been verified successfully.';
+                        setTimeout(() => {
+                            window.location.href = '../../frontend/index.php?toast=payment_verified';
+                        }, 1500);
+                        return;
+                    }
+
+                    if (checks >= maxChecks) {
+                        statusEl.textContent = 'Still waiting for confirmation.';
+                        hintEl.innerHTML = 'If you have completed payment, click <b>Sync My Payment Status</b> on the dashboard.';
+                        return;
+                    }
+                } catch (e) {
+                    if (checks >= maxChecks) {
+                        statusEl.textContent = 'Unable to verify right now.';
+                        hintEl.textContent = 'Please return to dashboard and use Sync My Payment Status.';
+                        return;
+                    }
+                }
+
+                setTimeout(pollPaymentStatus, 3000);
+            }
+
+            setTimeout(pollPaymentStatus, 1500);
+        </script>
     </body>
     </html>
     <?php

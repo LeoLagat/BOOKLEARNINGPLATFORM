@@ -112,49 +112,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Books & E-Learning Platform</title>
     <style>
+    :root {
+        --surface: White;
+        --surface-soft: GhostWhite;
+        --brand: SlateBlue;
+        --brand-strong: MidnightBlue;
+        --accent: RoyalBlue;
+        --success: MediumSeaGreen;
+        --warning: Orange;
+        --danger: Crimson;
+        --text: DarkSlateGray;
+        --muted: SlateGray;
+        --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+        --shadow-strong: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
     body { 
         font-family: "Segoe UI", Arial, sans-serif; 
         margin: 0; 
-        background: linear-gradient(120deg, AliceBlue, LavenderBlush); 
-        color: DarkSlateGray; 
+        background: radial-gradient(circle at top left, #eef7ff 0%, #f7fbff 45%, #fff6fb 100%);
+        color: var(--text); 
         scroll-behavior: smooth; 
         display: flex;
         flex-direction: column;
         min-height: 100vh;
     }
-    .container { max-width: 1200px; margin: auto; padding: 20px; flex: 1; }
-    h1 { font-size: 34px; text-align: center; color: MidnightBlue; }
+    .container { max-width: 1120px; margin: auto; padding: 20px; flex: 1; width: 100%; box-sizing: border-box; }
+    h1 { font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--brand-strong); margin-top: 8px; }
     h2 { 
         margin-top: 30px; 
-        color: RoyalBlue; 
-        border-left: 5px solid RoyalBlue; 
+        color: var(--accent); 
+        border-left: 5px solid var(--accent); 
         padding-left: 15px; 
     }
 
-    nav { display: flex; gap: 12px; margin: 20px 0 30px; flex-wrap: wrap; justify-content: center; }
+    nav {
+        display: flex;
+        gap: 12px;
+        margin: 20px 0 30px;
+        flex-wrap: wrap;
+        justify-content: center;
+        position: sticky;
+        top: 10px;
+        z-index: 50;
+        padding: 12px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(10px);
+    }
     nav button {
-        background: White; 
-        border: none; 
+        background: var(--surface);
+        border: 1px solid #e5e7eb;
         padding: 12px 22px; 
         border-radius: 12px;
         cursor: pointer; 
         font-weight: 600; 
-        box-shadow: 0 6px 20px rgba(0,0,0,0.08); 
-        transition: 0.3s;
+        box-shadow: var(--shadow-soft);
+        transition: 0.25s ease;
     }
     nav button:hover { 
-        background: SlateBlue; 
+        background: var(--brand); 
         color: White; 
         transform: translateY(-2px); 
+    }
+    nav button.nav-active {
+        background: var(--brand-strong);
+        color: White;
+        border-color: var(--brand-strong);
     }
 
     section { display: none; animation: fadeIn 0.5s ease; }
     section.active { 
         display: block; 
-        background: White; 
+        background: var(--surface);
         padding: 30px; 
         border-radius: 20px; 
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+        box-shadow: var(--shadow-strong);
     }
     @keyframes fadeIn { 
         from { opacity: 0; transform: translateY(10px); } 
@@ -163,10 +196,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     .book-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
     .book-card { 
-        background: GhostWhite; 
+        background: var(--surface-soft);
         padding: 20px; 
         border-radius: 16px; 
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06); 
+        box-shadow: var(--shadow-soft);
         transition: 0.3s; 
         border: 1px solid AliceBlue; 
     }
@@ -207,17 +240,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     .membership-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-top: 20px; }
     .membership-card { 
-        background: GhostWhite; 
+        background: var(--surface-soft);
         padding: 25px; 
         border-radius: 18px; 
         text-align: center; 
         border: 1px solid LightGrey; 
         transition: 0.3s; 
     }
+    .membership-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
     .popular { 
-        border: 2.5px solid SlateBlue; 
+        border: 2.5px solid var(--brand);
         transform: scale(1.05); 
-        background: White; 
+        background: var(--surface);
     }
     
     footer {
@@ -237,19 +271,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .font-bold { font-weight: bold; }
     .text-center { text-align: center; }
     
-    .btn-success { background: MediumSeaGreen; color: White; padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-    .btn-primary { background: SlateBlue; color: White; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-    .btn-danger { background: Crimson; color: White; padding: 15px 40px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
-    .btn-warning { background: Orange; color: White; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-    .btn-blue { background: RoyalBlue; color: White; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .btn-success { background: var(--success); color: White; padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s ease; }
+    .btn-primary { background: var(--brand); color: White; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s ease; }
+    .btn-danger { background: var(--danger); color: White; padding: 15px 40px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s ease; }
+    .btn-warning { background: var(--warning); color: White; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s ease; }
+    .btn-blue { background: var(--accent); color: White; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s ease; }
     .btn-full { width: 100%; padding: 15px; }
     .btn-block { width: 100%; display: block; box-sizing: border-box; }
+    .btn-success:hover, .btn-primary:hover, .btn-danger:hover, .btn-warning:hover, .btn-blue:hover { transform: translateY(-1px); filter: brightness(0.95); }
+    .btn-success:focus-visible, .btn-primary:focus-visible, .btn-danger:focus-visible, .btn-warning:focus-visible, .btn-blue:focus-visible, nav button:focus-visible {
+        outline: 3px solid rgba(65, 105, 225, 0.35);
+        outline-offset: 2px;
+    }
+    .btn-success:disabled, .btn-primary:disabled, .btn-danger:disabled, .btn-warning:disabled, .btn-blue:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
 
     .list-none { list-style: none; padding: 0; }
     .preview-text { line-height: 1.6; color: DarkSlateGray; font-size: 1.1rem; }
-    .status-box { background: GhostWhite; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid LightGrey; max-width: 400px; }
-    .status-text { margin: 0 0 10px 0; font-family: sans-serif; }
-    .info-box { background: AliceBlue; padding: 15px; border-radius: 10px; color: MidnightBlue; }
+    .status-box { background: var(--surface-soft); padding: 18px; border-radius: 14px; margin: 15px 0; border: 1px solid #dbe2ea; max-width: 620px; box-shadow: var(--shadow-soft); }
+    .status-text { margin: 0 0 12px 0; font-family: sans-serif; }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        border: 1px solid transparent;
+    }
+    .status-paid { background: HoneyDew; color: ForestGreen; border-color: LightGreen; }
+    .status-pending { background: #fff7e6; color: #b45309; border-color: #fcd34d; }
+    .status-helper { margin: 0 0 10px; color: var(--muted); font-size: 0.95rem; }
+    .info-box { background: AliceBlue; padding: 18px; border-radius: 12px; color: MidnightBlue; border: 1px solid #cbd5e1; max-width: 720px; }
     .hidden { display: none !important; }
 
     /* Loader */
@@ -278,7 +334,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         100% { transform: rotate(360deg); }
     }
 
-    #loader-container { display: none; }
+    #loader-container { display: none; align-items: center; justify-content: center; margin-top: 10px; }
     .loader-text { margin-left: 10px; color: DeepSkyBlue; font-weight: bold; }
 
     /* Toast Notification */
@@ -316,11 +372,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
 
+    @media (max-width: 820px) {
+        .container { padding: 14px; }
+        section.active { padding: 22px; }
+        nav { position: static; padding: 8px; }
+        nav button { flex: 1 1 calc(50% - 10px); padding: 11px 12px; }
+        .popular { transform: none; }
+        .modal-actions { flex-direction: column; }
+        .btn-danger { padding: 12px 20px; }
+    }
+
 </style>
 </head>
 <body>
 
-<div id="custom-toast" class="toast hidden"></div>
+<div id="custom-toast" class="toast hidden" role="status" aria-live="polite"></div>
 
 <div id="confirm-modal" class="modal">
     <div class="modal-content">
@@ -354,11 +420,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h1>Books & E-Learning Platform</h1>
 
     <nav>
-        <button onclick="showSection('home')">Home</button>
-        <button onclick="showSection('books')">Browse Books</button>
-        <button onclick="showSection('membership')">Membership</button>
-        <button onclick="showSection('quiz')">Take a Quiz</button>
-        <button onclick="showSection('dashboard')">My Dashboard</button>
+        <button class="nav-btn" data-target="home" onclick="showSection('home')">Home</button>
+        <button class="nav-btn" data-target="books" onclick="showSection('books')">Browse Books</button>
+        <button class="nav-btn" data-target="membership" onclick="showSection('membership')">Membership</button>
+        <button class="nav-btn" data-target="quiz" onclick="showSection('quiz')">Take a Quiz</button>
+        <button class="nav-btn" data-target="dashboard" onclick="showSection('dashboard')">My Dashboard</button>
     </nav>
 
     <section id="home" class="<?php echo isset($_GET['action']) ? '' : 'active'; ?>">
@@ -403,9 +469,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label><input type="radio" name="q2" value="1"> Estimating doubling time</label>
                 <label><input type="radio" name="q2" value="0"> Calculating taxes</label>
             </div>
-             <div class="quiz-item"><p>3. In Python, which keyword is used to create a function?</p>
+            <div class="quiz-item"><p>3. In Python, which keyword is used to create a function?</p>
                 <label><input type="radio" name="q3" value="1"> def</label>
                 <label><input type="radio" name="q3" value="0"> function</label>
+            </div>
+            <div class="quiz-item"><p>4. Which HTML tag is used for the largest heading?</p>
+                <label><input type="radio" name="q4" value="1"> &lt;h1&gt;</label>
+                <label><input type="radio" name="q4" value="0"> &lt;heading&gt;</label>
+            </div>
+            <div class="quiz-item"><p>5. In M-Pesa STK Push, what action is required from the user to complete payment?</p>
+                <label><input type="radio" name="q5" value="1"> Enter M-Pesa PIN on phone prompt</label>
+                <label><input type="radio" name="q5" value="0"> Refresh browser only</label>
+            </div>
+            <div class="quiz-item"><p>6. Which of these improves account security?</p>
+                <label><input type="radio" name="q6" value="1"> Using a strong unique password</label>
+                <label><input type="radio" name="q6" value="0"> Sharing passwords with friends</label>
+            </div>
+            <div class="quiz-item"><p>7. What does SEO stand for?</p>
+                <label><input type="radio" name="q7" value="1"> Search Engine Optimization</label>
+                <label><input type="radio" name="q7" value="0"> Secure Email Operations</label>
+            </div>
+            <div class="quiz-item"><p>8. Which practice helps in personal productivity?</p>
+                <label><input type="radio" name="q8" value="1"> Setting clear daily priorities</label>
+                <label><input type="radio" name="q8" value="0"> Multitasking everything at once</label>
             </div>
             <button onclick="checkQuiz()" class="btn-primary btn-full">Submit My Answers</button>
             <p id="quiz-score"></p>
@@ -464,12 +550,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="status-box">
                 <p class="status-text">
                     <strong>Current Status:</strong> 
-                    <span class="<?php echo ($_SESSION['payment_status'] == 'Paid') ? 'text-success' : 'text-warning'; ?> font-bold">
+                    <span class="status-badge <?php echo ($_SESSION['payment_status'] == 'Paid') ? 'status-paid' : 'status-pending'; ?> font-bold">
                         <?php echo $_SESSION['membership']; ?> (<?php echo $_SESSION['payment_status']; ?>)
                     </span>
                 </p>
+                <p class="status-helper">Use sync after completing payment on your phone to refresh account access instantly.</p>
                 
-                <form method="POST" onsubmit="showSyncLoader()">
+                <form method="POST" onsubmit="return showSyncLoader()">
                     <button type="submit" id="sync-btn" name="refresh_status" class="btn-blue btn-block">
                         🔄 Sync My Payment Status
                     </button>
@@ -487,7 +574,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <button onclick="window.location.href='../backend/api/books.php'" class="btn-primary">Go to Library</button>
                 <?php else: ?>
                     <p>⚠️ Your payment is still <b>Pending</b>. Please complete the M-Pesa transaction to access books.</p>
-                    <button onclick="showSection('membership')" class="btn-warning">Retry Payment</button>
+                    <button onclick="showSection('membership')" class="btn-warning">Retry Payment (after Sync)</button>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
@@ -524,21 +611,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Handle URL Toast Messages from PHP Redirects
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
+        const activeSection = document.querySelector('section.active');
+        setActiveNav(activeSection ? activeSection.id : 'home');
         if(urlParams.has('toast')) {
             const toastType = urlParams.get('toast');
             if(toastType === 'basic_switched') showToast('Switched to Basic Plan! No charge applied.');
             if(toastType === 'account_created') showToast('Account created! Welcome to Basic.');
             if(toastType === 'duplicate') showToast('Email or phone already registered.');
             if(toastType === 'mustpay') showToast('Please complete your pending payment before changing plans.');
+            if(toastType === 'payment_verified') showToast('Payment confirmed. Your account is now active.');
             // Clean URL after showing
             window.history.replaceState(null, null, window.location.pathname);
         }
     }
 
     // --- UI Navigation ---
+    function setActiveNav(id) {
+        document.querySelectorAll('nav .nav-btn').forEach(btn => {
+            btn.classList.toggle('nav-active', btn.dataset.target === id);
+        });
+    }
+
     function showSection(id) {
         document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        setActiveNav(id);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     const previews = {
@@ -592,17 +690,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     function showRegistration(plan, amount) {
         const isLoggedIn = <?php echo isset($_SESSION['fullname']) ? 'true' : 'false'; ?>;
+        const isPaid = <?php echo (isset($_SESSION['payment_status']) && $_SESSION['payment_status'] == 'Paid') ? 'true' : 'false'; ?>;
         
         if (isLoggedIn) {
             const currentPlan = "<?php echo $_SESSION['membership'] ?? ''; ?>";
-            if (plan === currentPlan) {
+            if (plan === currentPlan && isPaid) {
                 showToast("You are already subscribed to the " + plan + " plan.");
                 return;
             }
 
+            if (plan === currentPlan && !isPaid) {
+                showToast("Your " + plan + " payment is pending. Sending a new M-Pesa prompt...");
+            }
+
             // Show custom confirm dialog
             pendingUpgradePlan = plan;
-            document.getElementById('confirm-text').innerText = "You are already logged in. Do you want to upgrade to " + plan + " for KES " + amount + "?";
+            document.getElementById('confirm-text').innerText = (plan === currentPlan && !isPaid)
+                ? "Your " + plan + " payment is pending. Do you want to retry M-Pesa payment for KES " + amount + "?"
+                : "You are already logged in. Do you want to upgrade to " + plan + " for KES " + amount + "?";
             document.getElementById('confirm-modal').classList.add('show-modal');
         } else {
             document.getElementById("membershipInput").value = plan;
@@ -631,20 +736,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // --- Quiz Logic ---
     function checkQuiz() {
         let score = 0;
-        const total = 3;
+        const total = 8;
         for(let i=1; i<=total; i++) {
             let selected = document.querySelector(`input[name="q${i}"]:checked`);
             if(selected && selected.value === "1") score++;
         }
         const scoreDiv = document.getElementById('quiz-score');
-        scoreDiv.innerText = `You scored ${score} out of ${total}!`;
-        scoreDiv.style.color = score >= 2 ? "MediumSeaGreen" : "Crimson";
+        const percent = Math.round((score / total) * 100);
+        let level = "Keep practicing!";
+        if (percent >= 85) level = "Excellent work!";
+        else if (percent >= 60) level = "Good effort!";
+
+        scoreDiv.innerText = `You scored ${score} out of ${total} (${percent}%). ${level}`;
+        scoreDiv.style.color = percent >= 60 ? "MediumSeaGreen" : "Crimson";
     }
 
     // --- Loading Spinner Logic ---
     function showSyncLoader() {
-        document.getElementById('sync-btn').style.display = 'none';
+        const syncBtn = document.getElementById('sync-btn');
+        syncBtn.disabled = true;
+        syncBtn.textContent = 'Checking payment...';
         document.getElementById('loader-container').style.display = 'block';
+        return true;
     }
 </script>
 
