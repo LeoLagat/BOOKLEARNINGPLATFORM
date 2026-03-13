@@ -7,6 +7,7 @@ A PHP and MySQL learning platform with tiered memberships, protected book access
 - Membership tiers: Basic, Premium, and VIP.
 - Login and registration with secure password hashing.
 - Dedicated admin login and dashboard for uploading books.
+- Admin profile management (update name/email/photo and password change).
 - Admin dashboard includes a recycle bin with restore and permanent delete.
 - Super admin can create sub-admin accounts from the admin portal.
 - M-Pesa STK Push integration for paid plans.
@@ -16,6 +17,8 @@ A PHP and MySQL learning platform with tiered memberships, protected book access
 - Protected book access based on membership and payment status.
 - User activity log for books accessed.
 - User bookmarks for quick book access.
+- User profile page with account overview, editable details, profile photo upload, and password change.
+- Last login metadata (time, IP, device) shown in profile for account visibility.
 - Quiz section with multiple questions and score feedback.
 - File integrity checker for uploads.
 
@@ -39,6 +42,7 @@ A PHP and MySQL learning platform with tiered memberships, protected book access
 ### Frontend
 
 - `frontend/index.php`: Main app UI (home, books, membership, quiz, dashboard).
+- `frontend/profile.php`: User profile management page.
 - `frontend/login_view.php`: Login page.
 - `frontend/admin_login.php`: Admin portal login page.
 - `frontend/admin_dashboard.php`: Admin upload dashboard for books and tier assignment.

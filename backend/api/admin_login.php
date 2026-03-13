@@ -28,6 +28,22 @@ function ensureAdminUsersTableExists(mysqli $conn): bool {
         }
     }
 
+    $profileColumns = [
+        "ALTER TABLE admin_users ADD COLUMN profile_photo VARCHAR(255) NULL DEFAULT NULL AFTER role",
+        "ALTER TABLE admin_users ADD COLUMN last_login_at DATETIME NULL DEFAULT NULL AFTER created_at",
+        "ALTER TABLE admin_users ADD COLUMN last_login_ip VARCHAR(45) NULL DEFAULT NULL AFTER last_login_at",
+        "ALTER TABLE admin_users ADD COLUMN last_login_user_agent VARCHAR(255) NULL DEFAULT NULL AFTER last_login_ip"
+    ];
+
+    foreach ($profileColumns as $sqlAlter) {
+        if (!$conn->query($sqlAlter)) {
+            $error = $conn->error;
+            if (stripos($error, 'Duplicate column name') === false) {
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -101,11 +117,11 @@ if ($email === '' || $password === '') {
     exit();
 }
 
-$stmt = $conn->prepare("SELECT id, fullname, email, password, role FROM admin_users WHERE email = ? AND is_active = 1 LIMIT 1");
+$stmt = $conn->prepare("SELECT id, fullname, email, password, role, profile_photo FROM admin_users WHERE email = ? AND is_active = 1 LIMIT 1");
 
 if (!$stmt && ensureAdminUsersTableExists($conn)) {
     ensureDefaultAdminUser($conn, 'admin_users');
-    $stmt = $conn->prepare("SELECT id, fullname, email, password, role FROM admin_users WHERE email = ? AND is_active = 1 LIMIT 1");
+    $stmt = $conn->prepare("SELECT id, fullname, email, password, role, profile_photo FROM admin_users WHERE email = ? AND is_active = 1 LIMIT 1");
 }
 
 if (!$stmt && ensureAdminsLegacyTableExists($conn)) {
@@ -128,11 +144,21 @@ $result = $stmt->get_result();
 
 if ($admin = $result->fetch_assoc()) {
     if (password_verify($password, $admin['password'])) {
+        $loginIp = substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45);
+        $loginUa = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+        $loginStmt = $conn->prepare("UPDATE admin_users SET last_login_at = NOW(), last_login_ip = ?, last_login_user_agent = ? WHERE id = ?");
+        if ($loginStmt) {
+            $loginStmt->bind_param("ssi", $loginIp, $loginUa, $admin['id']);
+            $loginStmt->execute();
+        }
+
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['admin_id'] = (int) $admin['id'];
         $_SESSION['admin_fullname'] = $admin['fullname'];
         $_SESSION['admin_email'] = $admin['email'];
         $_SESSION['admin_role'] = $admin['role'] ?? 'super_admin';
+        $_SESSION['admin_profile_photo'] = $admin['profile_photo'] ?? null;
+        $_SESSION['admin_login_time'] = date('Y-m-d H:i:s');
 
         header("Location: ../../frontend/admin_dashboard.php");
         exit();

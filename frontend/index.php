@@ -176,7 +176,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssssss", $fullname, $email, $phone, $password, $membership, $status);
         
         if ($stmt->execute()) {
+            $_SESSION["user_id"] = (int) $stmt->insert_id;
             $_SESSION["fullname"] = $fullname;
+            $_SESSION["email"] = $email;
             $_SESSION["membership"] = $membership;
             $_SESSION["phone"] = $phone;
             $_SESSION["payment_status"] = $status;
@@ -562,6 +564,9 @@ if (isset($_SESSION['fullname'])) {
         <button class="nav-btn" data-target="membership" onclick="showSection('membership')">Membership</button>
         <button class="nav-btn" data-target="quiz" onclick="showSection('quiz')">Take a Quiz</button>
         <button class="nav-btn" data-target="dashboard" onclick="showSection('dashboard')">My Dashboard</button>
+        <?php if(isset($_SESSION["fullname"])): ?>
+            <button onclick="window.location.href='profile.php'">My Profile</button>
+        <?php endif; ?>
     </nav>
 
     <section id="home" class="<?php echo isset($_GET['action']) ? '' : 'active'; ?>">
@@ -681,6 +686,7 @@ if (isset($_SESSION['fullname'])) {
                     <p>⚠️ Your payment is still <b>Pending</b>. Please complete the M-Pesa transaction to access books.</p>
                     <button onclick="showSection('membership')" class="btn-warning">Retry Payment (after Sync)</button>
                 <?php endif; ?>
+                <button onclick="window.location.href='profile.php'" class="btn-blue" style="margin-top:10px;">Manage My Profile</button>
             </div>
 
             <div class="dashboard-tools">

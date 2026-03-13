@@ -31,6 +31,39 @@ function ensureAdminUsersTableExists(mysqli $conn): bool {
     return true;
 }
 
+function ensureAdminProfileColumns(mysqli $conn): bool {
+    $profileColumns = [
+        "ALTER TABLE admin_users ADD COLUMN profile_photo VARCHAR(255) NULL DEFAULT NULL AFTER role",
+        "ALTER TABLE admin_users ADD COLUMN last_login_at DATETIME NULL DEFAULT NULL AFTER created_at",
+        "ALTER TABLE admin_users ADD COLUMN last_login_ip VARCHAR(45) NULL DEFAULT NULL AFTER last_login_at",
+        "ALTER TABLE admin_users ADD COLUMN last_login_user_agent VARCHAR(255) NULL DEFAULT NULL AFTER last_login_ip"
+    ];
+
+    foreach ($profileColumns as $sqlAlter) {
+        if (!$conn->query($sqlAlter)) {
+            $error = $conn->error;
+            if (stripos($error, 'Duplicate column name') === false) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+function formatDateDisplay(?string $value): string {
+    if (!$value) {
+        return 'N/A';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return $value;
+    }
+
+    return date('F j, Y g:i A', $timestamp);
+}
+
 function ensureArchivedBooksTableExists(mysqli $conn): bool {
     $sql = "CREATE TABLE IF NOT EXISTS archived_books (
         id INT(11) NOT NULL AUTO_INCREMENT,
@@ -65,6 +98,7 @@ function deleteUploadedPdf(string $filePath): bool {
 
 ensureArchivedBooksTableExists($conn);
 ensureAdminUsersTableExists($conn);
+ensureAdminProfileColumns($conn);
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: admin_login.php");
@@ -74,6 +108,170 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 $feedback = '';
 $feedbackType = '';
 $adminRole = $_SESSION['admin_role'] ?? 'super_admin';
+$adminId = (int) ($_SESSION['admin_id'] ?? 0);
+
+$adminProfile = null;
+if ($adminId > 0) {
+    $adminStmt = $conn->prepare("SELECT id, fullname, email, role, profile_photo, last_login_at, last_login_ip, last_login_user_agent, created_at FROM admin_users WHERE id = ? LIMIT 1");
+    if ($adminStmt) {
+        $adminStmt->bind_param("i", $adminId);
+        $adminStmt->execute();
+        $adminResult = $adminStmt->get_result();
+        $adminProfile = $adminResult ? $adminResult->fetch_assoc() : null;
+    }
+}
+
+if (!$adminProfile) {
+    session_unset();
+    session_destroy();
+    header("Location: admin_login.php?error=invalid_credentials");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_admin_profile'])) {
+    $fullname = trim($_POST['admin_fullname'] ?? '');
+    $email = trim($_POST['admin_email'] ?? '');
+
+    if ($fullname === '' || $email === '') {
+        $feedback = 'Admin full name and email are required.';
+        $feedbackType = 'error';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $feedback = 'Please provide a valid admin email address.';
+        $feedbackType = 'error';
+    } else {
+        $dupeStmt = $conn->prepare("SELECT id FROM admin_users WHERE email = ? AND id <> ? LIMIT 1");
+        if (!$dupeStmt) {
+            $feedback = 'Server error checking admin email.';
+            $feedbackType = 'error';
+        } else {
+            $dupeStmt->bind_param("si", $email, $adminId);
+            $dupeStmt->execute();
+            $dupeResult = $dupeStmt->get_result();
+
+            if ($dupeResult && $dupeResult->fetch_assoc()) {
+                $feedback = 'That email is already in use by another admin.';
+                $feedbackType = 'error';
+            } else {
+                $newPhotoPath = $adminProfile['profile_photo'] ?? null;
+
+                if (isset($_FILES['admin_profile_photo']) && is_uploaded_file($_FILES['admin_profile_photo']['tmp_name'])) {
+                    $tmpFile = $_FILES['admin_profile_photo']['tmp_name'];
+                    $info = @getimagesize($tmpFile);
+                    $extension = strtolower(pathinfo($_FILES['admin_profile_photo']['name'], PATHINFO_EXTENSION));
+                    $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+
+                    if (!$info || !in_array($extension, $allowed, true)) {
+                        $feedback = 'Profile photo must be a valid JPG, PNG, or WEBP image.';
+                        $feedbackType = 'error';
+                    } else {
+                        $profileDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'admin_profiles';
+                        if (!is_dir($profileDir)) {
+                            mkdir($profileDir, 0777, true);
+                        }
+
+                        $fileName = 'admin_' . $adminId . '_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $extension;
+                        $targetPath = $profileDir . DIRECTORY_SEPARATOR . $fileName;
+                        $relativePath = 'uploads/admin_profiles/' . $fileName;
+
+                        if (move_uploaded_file($tmpFile, $targetPath)) {
+                            if (!empty($adminProfile['profile_photo']) && strpos($adminProfile['profile_photo'], 'uploads/admin_profiles/') === 0) {
+                                $oldPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $adminProfile['profile_photo']);
+                                if (is_file($oldPath)) {
+                                    @unlink($oldPath);
+                                }
+                            }
+                            $newPhotoPath = $relativePath;
+                        } else {
+                            $feedback = 'Failed to upload profile photo.';
+                            $feedbackType = 'error';
+                        }
+                    }
+                }
+
+                if ($feedbackType !== 'error') {
+                    $updateStmt = $conn->prepare("UPDATE admin_users SET fullname = ?, email = ?, profile_photo = ? WHERE id = ?");
+                    if (!$updateStmt) {
+                        $feedback = 'Server error updating admin profile.';
+                        $feedbackType = 'error';
+                    } else {
+                        $updateStmt->bind_param("sssi", $fullname, $email, $newPhotoPath, $adminId);
+                        if ($updateStmt->execute()) {
+                            $_SESSION['admin_fullname'] = $fullname;
+                            $_SESSION['admin_email'] = $email;
+                            $_SESSION['admin_profile_photo'] = $newPhotoPath;
+                            $feedback = 'Admin profile updated successfully.';
+                            $feedbackType = 'success';
+                        } else {
+                            $feedback = 'Could not update profile at this time.';
+                            $feedbackType = 'error';
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_admin_password'])) {
+    $currentPassword = $_POST['current_password'] ?? '';
+    $newPassword = $_POST['new_password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+
+    if ($newPassword === '' || strlen($newPassword) < 6) {
+        $feedback = 'New password must be at least 6 characters.';
+        $feedbackType = 'error';
+    } elseif ($newPassword !== $confirmPassword) {
+        $feedback = 'New password and confirmation do not match.';
+        $feedbackType = 'error';
+    } else {
+        $pwStmt = $conn->prepare("SELECT password FROM admin_users WHERE id = ? LIMIT 1");
+        if (!$pwStmt) {
+            $feedback = 'Server error verifying password.';
+            $feedbackType = 'error';
+        } else {
+            $pwStmt->bind_param("i", $adminId);
+            $pwStmt->execute();
+            $pwResult = $pwStmt->get_result();
+            $pwRow = $pwResult ? $pwResult->fetch_assoc() : null;
+
+            if (!$pwRow || !password_verify($currentPassword, $pwRow['password'])) {
+                $feedback = 'Current password is incorrect.';
+                $feedbackType = 'error';
+            } else {
+                $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+                $updatePasswordStmt = $conn->prepare("UPDATE admin_users SET password = ? WHERE id = ?");
+                if (!$updatePasswordStmt) {
+                    $feedback = 'Server error updating password.';
+                    $feedbackType = 'error';
+                } else {
+                    $updatePasswordStmt->bind_param("si", $passwordHash, $adminId);
+                    if ($updatePasswordStmt->execute()) {
+                        $feedback = 'Admin password updated successfully.';
+                        $feedbackType = 'success';
+                    } else {
+                        $feedback = 'Could not update admin password.';
+                        $feedbackType = 'error';
+                    }
+                }
+            }
+        }
+    }
+}
+
+if ($adminId > 0) {
+    $adminRefreshStmt = $conn->prepare("SELECT id, fullname, email, role, profile_photo, last_login_at, last_login_ip, last_login_user_agent, created_at FROM admin_users WHERE id = ? LIMIT 1");
+    if ($adminRefreshStmt) {
+        $adminRefreshStmt->bind_param("i", $adminId);
+        $adminRefreshStmt->execute();
+        $adminRefreshResult = $adminRefreshStmt->get_result();
+        $latestAdmin = $adminRefreshResult ? $adminRefreshResult->fetch_assoc() : null;
+        if ($latestAdmin) {
+            $adminProfile = $latestAdmin;
+            $adminRole = $adminProfile['role'] ?? $adminRole;
+            $_SESSION['admin_role'] = $adminRole;
+        }
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_sub_admin'])) {
     if ($adminRole !== 'super_admin') {
@@ -582,6 +780,39 @@ if ($adminResult) {
         .role-super { background: HoneyDew; color: DarkGreen; }
         .role-sub { background: AliceBlue; color: MidnightBlue; }
 
+        .profile-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .profile-card {
+            border: 1px solid #eceff4;
+            border-radius: 12px;
+            padding: 14px;
+            background: #fbfdff;
+        }
+
+        .admin-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid LightSteelBlue;
+            background: AliceBlue;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: MidnightBlue;
+            font-weight: 700;
+        }
+
+        @media (max-width: 960px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 800px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -594,10 +825,58 @@ if ($adminResult) {
     <div class="topbar">
         <div>
             <h1>Admin Dashboard</h1>
-            <p class="meta">Logged in as <?php echo htmlspecialchars($_SESSION['admin_fullname'] ?? 'Admin'); ?></p>
+            <p class="meta">Logged in as <?php echo htmlspecialchars($adminProfile['fullname'] ?? ($_SESSION['admin_fullname'] ?? 'Admin')); ?></p>
             <p class="meta">Role: <?php echo htmlspecialchars(str_replace('_', ' ', $adminRole)); ?></p>
         </div>
         <a class="btn-logout" href="../backend/api/admin_logout.php">Logout</a>
+    </div>
+
+    <div class="panel">
+        <h2>My Admin Profile</h2>
+        <div class="profile-grid">
+            <div class="profile-card">
+                <?php if (!empty($adminProfile['profile_photo'])): ?>
+                    <img class="admin-avatar" src="../<?php echo htmlspecialchars($adminProfile['profile_photo']); ?>" alt="Admin profile photo">
+                <?php else: ?>
+                    <div class="admin-avatar"><?php echo htmlspecialchars(strtoupper(substr($adminProfile['fullname'], 0, 1))); ?></div>
+                <?php endif; ?>
+                <p class="meta">Last login: <?php echo htmlspecialchars(formatDateDisplay($adminProfile['last_login_at'] ?? null)); ?></p>
+                <p class="meta">Last IP: <?php echo htmlspecialchars($adminProfile['last_login_ip'] ?? 'N/A'); ?></p>
+                <p class="meta">Device: <?php echo htmlspecialchars($adminProfile['last_login_user_agent'] ?? 'N/A'); ?></p>
+                <p class="meta">Session started: <?php echo htmlspecialchars(formatDateDisplay($_SESSION['admin_login_time'] ?? null)); ?></p>
+                <p class="meta">Account created: <?php echo htmlspecialchars(formatDateDisplay($adminProfile['created_at'] ?? null)); ?></p>
+            </div>
+
+            <div class="profile-card">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="update_admin_profile" value="1">
+                    <label for="admin_fullname">Full Name</label>
+                    <input id="admin_fullname" type="text" name="admin_fullname" value="<?php echo htmlspecialchars($adminProfile['fullname']); ?>" required>
+
+                    <label for="admin_email">Email</label>
+                    <input id="admin_email" type="email" name="admin_email" value="<?php echo htmlspecialchars($adminProfile['email']); ?>" required>
+
+                    <label for="admin_profile_photo">Profile Photo (JPG, PNG, WEBP)</label>
+                    <input id="admin_profile_photo" type="file" name="admin_profile_photo" accept="image/png,image/jpeg,image/webp">
+
+                    <button class="btn-submit" type="submit">Save Profile</button>
+                </form>
+
+                <form method="POST" style="margin-top:14px;">
+                    <input type="hidden" name="change_admin_password" value="1">
+                    <label for="current_password">Current Password</label>
+                    <input id="current_password" type="password" name="current_password" required>
+
+                    <label for="new_password">New Password</label>
+                    <input id="new_password" type="password" name="new_password" minlength="6" required>
+
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input id="confirm_password" type="password" name="confirm_password" minlength="6" required>
+
+                    <button class="btn-submit" type="submit">Change Password</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div class="panel">
