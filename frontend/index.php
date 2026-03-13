@@ -9,6 +9,95 @@ if (!isset($_SESSION["fullname"]) && !isset($_GET['action']) && $_SERVER["REQUES
 
 include "../backend/api/config.php";
 
+function ensureUserBookTablesExist(mysqli $conn): void {
+    $conn->query("CREATE TABLE IF NOT EXISTS user_bookmarks (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        user_id INT(11) NOT NULL,
+        book_id INT(11) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uniq_user_bookmark (user_id, book_id),
+        KEY idx_user_bookmarks_user (user_id),
+        KEY idx_user_bookmarks_book (book_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS user_book_activity (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        user_id INT(11) NOT NULL,
+        book_id INT(11) NOT NULL,
+        action VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_user_activity_user (user_id),
+        KEY idx_user_activity_book (book_id),
+        KEY idx_user_activity_action (action)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+}
+
+function resolveCurrentUserId(mysqli $conn): int {
+    $rawPhone = $_SESSION['phone'] ?? '';
+    $phone = str_replace([' ', '+'], '', $rawPhone);
+
+    if ($phone === '') {
+        return 0;
+    }
+
+    if (substr($phone, 0, 1) === '0') {
+        $phone254 = '254' . substr($phone, 1);
+    } elseif (substr($phone, 0, 3) === '254') {
+        $phone254 = $phone;
+    } else {
+        $phone254 = '254' . ltrim($phone, '0');
+    }
+
+    $phone0 = '0' . substr($phone254, 3);
+
+    $stmt = $conn->prepare("SELECT id FROM users WHERE phone = ? OR phone = ? LIMIT 1");
+    if (!$stmt) {
+        return 0;
+    }
+
+    $stmt->bind_param("ss", $phone254, $phone0);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result ? $result->fetch_assoc() : null;
+
+    return $row ? (int) $row['id'] : 0;
+}
+
+function formatRelativeTime(string $datetime): string {
+    $timestamp = strtotime($datetime);
+    if ($timestamp === false) {
+        return $datetime;
+    }
+
+    $diff = time() - $timestamp;
+
+    if ($diff < 60) {
+        return 'just now';
+    }
+    if ($diff < 3600) {
+        $mins = (int) floor($diff / 60);
+        return $mins . ' minute' . ($mins === 1 ? '' : 's') . ' ago';
+    }
+    if ($diff < 86400) {
+        $hours = (int) floor($diff / 3600);
+        return $hours . ' hour' . ($hours === 1 ? '' : 's') . ' ago';
+    }
+
+    $days = (int) floor($diff / 86400);
+    if ($days < 7) {
+        return $days . ' day' . ($days === 1 ? '' : 's') . ' ago';
+    }
+
+    return date('Y-m-d H:i', $timestamp);
+}
+
+ensureUserBookTablesExist($conn);
+
+$dashboardBookmarks = [];
+$dashboardActivity = [];
+
 // Registration & POST Logic
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -104,6 +193,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 } // End of POST Check
+
+if (isset($_SESSION['fullname'])) {
+    $currentUserId = resolveCurrentUserId($conn);
+
+    if ($currentUserId > 0) {
+        $bookmarkStmt = $conn->prepare("SELECT b.id, b.title, b.membership_required, ub.created_at
+            FROM user_bookmarks ub
+            INNER JOIN books b ON b.id = ub.book_id
+            WHERE ub.user_id = ?
+            ORDER BY ub.created_at DESC
+            LIMIT 10");
+
+        if ($bookmarkStmt) {
+            $bookmarkStmt->bind_param("i", $currentUserId);
+            $bookmarkStmt->execute();
+            $bookmarkResult = $bookmarkStmt->get_result();
+
+            while ($bookmarkResult && $row = $bookmarkResult->fetch_assoc()) {
+                $dashboardBookmarks[] = $row;
+            }
+        }
+
+        $activityStmt = $conn->prepare("SELECT b.title, uba.action, uba.created_at
+            FROM user_book_activity uba
+            INNER JOIN books b ON b.id = uba.book_id
+            WHERE uba.user_id = ?
+            ORDER BY uba.created_at DESC
+            LIMIT 10");
+
+        if ($activityStmt) {
+            $activityStmt->bind_param("i", $currentUserId);
+            $activityStmt->execute();
+            $activityResult = $activityStmt->get_result();
+
+            while ($activityResult && $row = $activityResult->fetch_assoc()) {
+                $dashboardActivity[] = $row;
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -306,6 +435,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .status-pending { background: FloralWhite; color: Sienna; border-color: Gold; }
     .status-helper { margin: 0 0 10px; color: var(--muted); font-size: 0.95rem; }
     .info-box { background: AliceBlue; padding: 18px; border-radius: 12px; color: MidnightBlue; border: 1px solid LightBlue; max-width: 720px; }
+    .dashboard-tools { margin-top: 22px; background: White; border: 1px solid LightGray; border-radius: 14px; padding: 18px; box-shadow: var(--shadow-soft); }
+    .dashboard-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .dashboard-tab-btn { border: 1px solid LightGray; background: GhostWhite; color: MidnightBlue; padding: 8px 14px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+    .dashboard-tab-btn.active { background: SlateBlue; color: White; border-color: SlateBlue; }
+    .dashboard-pane { display: none; }
+    .dashboard-pane.active { display: block; }
+    .dashboard-list { margin: 0; padding-left: 18px; color: DimGray; }
+    .dashboard-list li { margin-bottom: 8px; }
     .hidden { display: none !important; }
 
     /* Loader */
@@ -577,6 +714,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <button onclick="showSection('membership')" class="btn-warning">Retry Payment (after Sync)</button>
                 <?php endif; ?>
             </div>
+
+            <div class="dashboard-tools">
+                <h3 class="text-primary" style="margin-top:0;">Quick Access</h3>
+                <div class="dashboard-tabs">
+                    <button type="button" class="dashboard-tab-btn active" onclick="showDashboardTab('bookmarks', this)">Bookmarks</button>
+                    <button type="button" class="dashboard-tab-btn" onclick="showDashboardTab('activity', this)">Recent Activity</button>
+                </div>
+
+                <div id="dashboard-bookmarks" class="dashboard-pane active">
+                    <?php if (count($dashboardBookmarks) === 0): ?>
+                        <p class="text-muted">No bookmarks yet. Save books from your library to see them here.</p>
+                    <?php else: ?>
+                        <ul class="dashboard-list">
+                            <?php foreach ($dashboardBookmarks as $bookmark): ?>
+                                <li>
+                                    <?php echo htmlspecialchars($bookmark['title']); ?>
+                                    (<?php echo htmlspecialchars($bookmark['membership_required']); ?>)
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+
+                <div id="dashboard-activity" class="dashboard-pane">
+                    <?php if (count($dashboardActivity) === 0): ?>
+                        <p class="text-muted">No recent activity yet. Open books from your library to build history.</p>
+                    <?php else: ?>
+                        <ul class="dashboard-list">
+                            <?php foreach ($dashboardActivity as $activity): ?>
+                                <li>
+                                    <?php echo htmlspecialchars($activity['title']); ?> -
+                                    <?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $activity['action']))); ?>
+                                    (<?php echo htmlspecialchars(formatRelativeTime($activity['created_at'])); ?>)
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
         <?php endif; ?>
     </section>
 </div>
@@ -758,6 +934,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         syncBtn.textContent = 'Checking payment...';
         document.getElementById('loader-container').style.display = 'block';
         return true;
+    }
+
+    function showDashboardTab(tab, button) {
+        const bookmarksPane = document.getElementById('dashboard-bookmarks');
+        const activityPane = document.getElementById('dashboard-activity');
+        if (!bookmarksPane || !activityPane) {
+            return;
+        }
+
+        bookmarksPane.classList.toggle('active', tab === 'bookmarks');
+        activityPane.classList.toggle('active', tab === 'activity');
+
+        document.querySelectorAll('.dashboard-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        if (button) {
+            button.classList.add('active');
+        }
     }
 </script>
 

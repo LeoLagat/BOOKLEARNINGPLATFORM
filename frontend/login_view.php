@@ -80,6 +80,7 @@
 
     <div class="footer-links">
         <p>Don't have an account? <a href="index.php?action=signup">Sign Up Here</a></p>
+        <p>Admin? <a href="admin_login.php">Open Admin Portal</a></p>
     </div>
 </div>
 

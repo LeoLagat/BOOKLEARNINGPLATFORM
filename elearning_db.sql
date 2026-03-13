@@ -35,6 +35,50 @@ CREATE TABLE `books` (
   `file_path` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `archived_books`
+--
+
+CREATE TABLE `archived_books` (
+  `id` int(11) NOT NULL,
+  `original_book_id` int(11) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `membership_required` enum('Basic','Premium','VIP') DEFAULT 'Basic',
+  `file_path` varchar(255) NOT NULL,
+  `archived_by` varchar(100) DEFAULT NULL,
+  `archived_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_bookmarks`
+--
+
+CREATE TABLE `user_bookmarks` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `book_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_book_activity`
+--
+
+CREATE TABLE `user_book_activity` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `book_id` int(11) NOT NULL,
+  `action` varchar(20) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Dumping data for table `books`
 --
@@ -48,6 +92,37 @@ INSERT INTO `books` (`id`, `title`, `description`, `membership_required`, `file_
 (6, 'Financial Freedom', 'Master your money and build wealth for free.', 'Basic', 'uploads/financial_freedom.pdf'),
 (7, 'Real Estate 101', 'A complete guide to property investment.', 'Premium', 'uploads/real_estate_101.pdf'),
 (8, 'Digital Marketing', 'How to grow any business online.', 'VIP', 'uploads/digital_marketing.pdf');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `id` int(11) NOT NULL,
+  `fullname` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admin_users`
+--
+
+CREATE TABLE `admin_users` (
+  `id` int(11) NOT NULL,
+  `fullname` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` enum('super_admin','sub_admin') NOT NULL DEFAULT 'sub_admin',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -88,6 +163,44 @@ ALTER TABLE `books`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `archived_books`
+--
+ALTER TABLE `archived_books`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `user_bookmarks`
+--
+ALTER TABLE `user_bookmarks`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_user_bookmark` (`user_id`,`book_id`),
+  ADD KEY `idx_user_bookmarks_user` (`user_id`),
+  ADD KEY `idx_user_bookmarks_book` (`book_id`);
+
+--
+-- Indexes for table `user_book_activity`
+--
+ALTER TABLE `user_book_activity`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_activity_user` (`user_id`),
+  ADD KEY `idx_user_activity_book` (`book_id`),
+  ADD KEY `idx_user_activity_action` (`action`);
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `admin_users`
+--
+ALTER TABLE `admin_users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -103,6 +216,36 @@ ALTER TABLE `users`
 --
 ALTER TABLE `books`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `archived_books`
+--
+ALTER TABLE `archived_books`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user_bookmarks`
+--
+ALTER TABLE `user_bookmarks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user_book_activity`
+--
+ALTER TABLE `user_book_activity`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `admin_users`
+--
+ALTER TABLE `admin_users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`

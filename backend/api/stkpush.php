@@ -101,19 +101,36 @@ if ($callbackUrl === '') {
     die("Unable to determine callback URL. Set MPESA_CALLBACK_URL to your public callback endpoint.");
 }
 
-// verify callback is reachable (helps diagnose timeout issues)
+// Never allow localhost callback URLs for Safaricom requests.
+$callbackHost = parse_url($callbackUrl, PHP_URL_HOST);
+if ($callbackHost && preg_match('/^(localhost|127\.0\.0\.1)$/i', $callbackHost)) {
+    die("Invalid callback host: localhost is not reachable by Safaricom. Use ngrok or set MPESA_CALLBACK_URL to a public HTTPS URL.");
+}
+
+// Verify callback reachability for diagnostics.
+// By default this check is non-blocking because some environments return HTTP 0
+// for outbound probes while Safaricom can still reach the callback.
+// Set MPESA_STRICT_CALLBACK_CHECK=1 to enforce hard failure.
+$strictCallbackCheck = getenv('MPESA_STRICT_CALLBACK_CHECK') === '1';
 $check = curl_init($callbackUrl);
+curl_setopt($check, CURLOPT_NOBODY, true);
+curl_setopt($check, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($check, CURLOPT_CONNECTTIMEOUT, 5);
 curl_setopt($check, CURLOPT_TIMEOUT, 8);
 curl_setopt($check, CURLOPT_RETURNTRANSFER, true);
 $result = curl_exec($check);
 $http = curl_getinfo($check, CURLINFO_HTTP_CODE);
 $error = curl_error($check);
 curl_close($check);
-// treat as failure when request cannot be completed or callback responds 4xx/5xx
-if ($result === false || $http >= 400 || $http === 0) {
-    // log full diagnostics
-    file_put_contents(__DIR__ . '/stk-response.log', date('c') . " CALLBACK CHECK failed (url=$callbackUrl, http=$http, err=\"$error\")\n", FILE_APPEND);
-    die("Callback URL unreachable (HTTP $http). Error: $error. Please ensure the ngrok tunnel is active and the URL is correct.");
+
+$callbackCheckFailed = ($result === false || $http >= 400 || $http === 0);
+if ($callbackCheckFailed) {
+    // log full diagnostics for troubleshooting
+    file_put_contents(__DIR__ . '/stk-response.log', date('c') . " CALLBACK CHECK warning (url=$callbackUrl, http=$http, err=\"$error\", strict=" . ($strictCallbackCheck ? '1' : '0') . ")\n", FILE_APPEND);
+
+    if ($strictCallbackCheck) {
+        die("Callback URL unreachable (HTTP $http). Error: $error. Please ensure the ngrok tunnel is active and the URL is correct.");
+    }
 }
 
 // 5. STK Push Request
