@@ -19,7 +19,7 @@
             background: White; 
             padding: 40px; 
             border-radius: 20px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            box-shadow: 0 20px 40px Gray; 
             width: 100%;
             max-width: 400px;
             box-sizing: border-box;
@@ -39,7 +39,7 @@
         input:focus {
             outline: none;
             border-color: SlateBlue;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 0 3px MediumSlateBlue;
         }
         button { 
             width: 100%; 
