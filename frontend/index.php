@@ -597,41 +597,9 @@ if (isset($_SESSION['fullname'])) {
 
     <section id="quiz">
         <h2>Test Your Knowledge</h2>
+        <p style="text-align:center;color:#666;margin-bottom:16px;">10 random questions drawn from a pool of 48 — new set every round!</p>
         <div id="quiz-container">
-            <div class="quiz-item"><p>1. Which of these is a macronutrient?</p>
-                <label><input type="radio" name="q1" value="1"> Protein</label>
-                <label><input type="radio" name="q1" value="0"> Vitamin C</label>
-            </div>
-            <div class="quiz-item"><p>2. What is the rule of 72 used for in finance?</p>
-                <label><input type="radio" name="q2" value="1"> Estimating doubling time</label>
-                <label><input type="radio" name="q2" value="0"> Calculating taxes</label>
-            </div>
-            <div class="quiz-item"><p>3. In Python, which keyword is used to create a function?</p>
-                <label><input type="radio" name="q3" value="1"> def</label>
-                <label><input type="radio" name="q3" value="0"> function</label>
-            </div>
-            <div class="quiz-item"><p>4. Which HTML tag is used for the largest heading?</p>
-                <label><input type="radio" name="q4" value="1"> &lt;h1&gt;</label>
-                <label><input type="radio" name="q4" value="0"> &lt;heading&gt;</label>
-            </div>
-            <div class="quiz-item"><p>5. In M-Pesa STK Push, what action is required from the user to complete payment?</p>
-                <label><input type="radio" name="q5" value="1"> Enter M-Pesa PIN on phone prompt</label>
-                <label><input type="radio" name="q5" value="0"> Refresh browser only</label>
-            </div>
-            <div class="quiz-item"><p>6. Which of these improves account security?</p>
-                <label><input type="radio" name="q6" value="1"> Using a strong unique password</label>
-                <label><input type="radio" name="q6" value="0"> Sharing passwords with friends</label>
-            </div>
-            <div class="quiz-item"><p>7. What does SEO stand for?</p>
-                <label><input type="radio" name="q7" value="1"> Search Engine Optimization</label>
-                <label><input type="radio" name="q7" value="0"> Secure Email Operations</label>
-            </div>
-            <div class="quiz-item"><p>8. Which practice helps in personal productivity?</p>
-                <label><input type="radio" name="q8" value="1"> Setting clear daily priorities</label>
-                <label><input type="radio" name="q8" value="0"> Multitasking everything at once</label>
-            </div>
-            <button onclick="checkQuiz()" class="btn-primary btn-full">Submit My Answers</button>
-            <p id="quiz-score"></p>
+            <!-- Populated dynamically by buildQuiz() -->
         </div>
     </section>
 
@@ -910,21 +878,105 @@ if (isset($_SESSION['fullname'])) {
     }
 
     // --- Quiz Logic ---
-    function checkQuiz() {
-        let score = 0;
-        const total = 8;
-        for(let i=1; i<=total; i++) {
-            let selected = document.querySelector(`input[name="q${i}"]:checked`);
-            if(selected && selected.value === "1") score++;
-        }
-        const scoreDiv = document.getElementById('quiz-score');
-        const percent = Math.round((score / total) * 100);
-        let level = "Keep practicing!";
-        if (percent >= 85) level = "Excellent work!";
-        else if (percent >= 60) level = "Good effort!";
+    const QUIZ_BANK = [
+        // Python Programming
+        { q: "In Python, which keyword is used to create a function?", options: ["def", "function", "fun", "create"], correct: 0 },
+        { q: "What does the len() function return in Python?", options: ["The number of items in an object", "The largest item", "The smallest item", "The sum of all items"], correct: 0 },
+        { q: "Which Python data type stores key-value pairs?", options: ["Dictionary", "List", "Tuple", "Set"], correct: 0 },
+        { q: "How do you start a single-line comment in Python?", options: ["# symbol", "// symbol", "/* symbol", "-- symbol"], correct: 0 },
+        { q: "What is the output of print(2 ** 3) in Python?", options: ["8", "6", "5", "9"], correct: 0 },
+        { q: "Which method adds an item to the end of a Python list?", options: ["append()", "add()", "insert()", "push()"], correct: 0 },
+        { q: "Which Python library is commonly used for data manipulation?", options: ["pandas", "numpy", "flask", "django"], correct: 0 },
+        { q: "What is a Python list comprehension?", options: ["A shorthand way to create a list", "A way to import libraries", "A loop that runs forever", "A database query"], correct: 0 },
+        { q: "Which Python function converts a string to an integer?", options: ["int()", "str()", "float()", "parse()"], correct: 0 },
+        { q: "What does if __name__ == '__main__': check in Python?", options: ["If the script is run directly", "If the function is recursive", "If the variable is defined", "If the module is imported"], correct: 0 },
+        // Financial Intelligence
+        { q: "What is the Rule of 72 used for in finance?", options: ["Estimating doubling time of an investment", "Calculating annual tax", "Measuring stock risk", "Computing inflation"], correct: 0 },
+        { q: "What does ROI stand for?", options: ["Return on Investment", "Rate of Interest", "Ratio of Income", "Revenue over Imports"], correct: 0 },
+        { q: "What is compound interest?", options: ["Interest earned on both principal and accumulated interest", "Interest paid only on principal", "A fixed monthly fee", "Interest that stops after 1 year"], correct: 0 },
+        { q: "What is a budget?", options: ["A plan for managing income and expenses", "A type of bank account", "A government tax form", "A loan agreement"], correct: 0 },
+        { q: "What does diversification mean in investing?", options: ["Spreading investments to reduce risk", "Putting all money in one stock", "Borrowing money to invest", "Withdrawing money early"], correct: 0 },
+        { q: "What is a bull market?", options: ["A market with rising prices", "A market with falling prices", "A livestock trading market", "A government-controlled market"], correct: 0 },
+        { q: "What does 'liquidity' mean in finance?", options: ["How quickly an asset can be converted to cash", "The total value of a company", "The interest rate on a loan", "Monthly profit margin"], correct: 0 },
+        { q: "Why is an emergency fund important?", options: ["To cover unexpected expenses without going into debt", "To buy luxury items", "To invest in cryptocurrency", "To pay annual taxes"], correct: 0 },
+        { q: "What does 'net worth' mean?", options: ["Total assets minus total liabilities", "Total annual income", "Total savings over 10 years", "Total debt owed to banks"], correct: 0 },
+        { q: "What is a stock?", options: ["A share of ownership in a company", "A government savings bond", "A monthly bank fee", "A type of loan"], correct: 0 },
+        // Health & Nutrition
+        { q: "Which of these is a macronutrient?", options: ["Protein", "Vitamin C", "Iron", "Magnesium"], correct: 0 },
+        { q: "What is the primary function of carbohydrates in the body?", options: ["Providing the body with energy", "Building muscle tissue", "Regulating hormones", "Transporting oxygen"], correct: 0 },
+        { q: "How many glasses of water are generally recommended per day?", options: ["8 glasses", "2 glasses", "15 glasses", "4 glasses"], correct: 0 },
+        { q: "Which vitamin is primarily obtained from sunlight?", options: ["Vitamin D", "Vitamin C", "Vitamin B12", "Vitamin K"], correct: 0 },
+        { q: "Which mineral is most important for bone health?", options: ["Calcium", "Potassium", "Zinc", "Selenium"], correct: 0 },
+        { q: "What is a calorie?", options: ["A unit of energy found in food", "A type of vitamin", "A measure of fat content", "A sugar substitute"], correct: 0 },
+        { q: "How many portions of fruits and vegetables are recommended daily?", options: ["At least 5 portions", "1 portion", "Only 2 portions of fruit", "As many as possible without limit"], correct: 0 },
+        // Personal Productivity
+        { q: "Which practice most helps with personal productivity?", options: ["Setting clear daily priorities", "Multitasking everything at once", "Checking social media throughout the day", "Skipping breaks to work longer"], correct: 0 },
+        { q: "What is the Pomodoro Technique?", options: ["Working in 25-minute intervals with short breaks", "Sleeping for 25 minutes before work", "Writing 25 goals each morning", "Reading for 25 minutes before bed"], correct: 0 },
+        { q: "What is the 80/20 rule (Pareto Principle)?", options: ["80% of results come from 20% of efforts", "Save 80% and spend 20%", "Work 80 hours a week to succeed", "Sleep 80% of the weekend"], correct: 0 },
+        { q: "What does SMART stand for in goal setting?", options: ["Specific, Measurable, Achievable, Relevant, Time-bound", "Simple, Motivating, Ambitious, Real, Talented", "Short, Modern, Actionable, Reactive, Tested", "Structured, Meaningful, Active, Ready, Thorough"], correct: 0 },
+        { q: "What is 'time-blocking'?", options: ["Scheduling specific tasks in dedicated time slots", "Blocking websites during work hours", "Taking long breaks between tasks", "Setting alarms every hour"], correct: 0 },
+        { q: "What does 'deep work' refer to?", options: ["Focused, distraction-free professional activity", "Working from a basement office", "Extended overnight shifts", "Working on complex database queries"], correct: 0 },
+        { q: "Which habit helps most in reducing procrastination?", options: ["Breaking big tasks into smaller steps", "Waiting for perfect conditions", "Watching motivational videos all day", "Delegating all responsibilities"], correct: 0 },
+        // Web Development & Technology
+        { q: "Which HTML tag is used for the largest heading?", options: ["&lt;h1&gt;", "&lt;h6&gt;", "&lt;heading&gt;", "&lt;title&gt;"], correct: 0 },
+        { q: "What does CSS stand for?", options: ["Cascading Style Sheets", "Creative Server Scripts", "Computer Style Syntax", "Central Styling System"], correct: 0 },
+        { q: "What does SEO stand for?", options: ["Search Engine Optimization", "Secure Email Operations", "Server Event Output", "System Error Override"], correct: 0 },
+        { q: "What is a responsive website?", options: ["A site that adapts to different screen sizes", "A site that responds to emails automatically", "A site with the fastest loading speed", "A site built exclusively with Python"], correct: 0 },
+        { q: "What does HTTP stand for?", options: ["HyperText Transfer Protocol", "High Tech Transfer Platform", "Hyperlink Text Transmission Protocol", "Host Transfer and Transmission Program"], correct: 0 },
+        { q: "What is the primary role of JavaScript in web development?", options: ["Adding interactivity to web pages", "Styling web pages with colours", "Managing databases directly", "Routing server-side requests"], correct: 0 },
+        // Cybersecurity
+        { q: "Which of these best improves account security?", options: ["Using a strong unique password", "Using the same password everywhere", "Writing passwords on sticky notes", "Sharing passwords with close friends"], correct: 0 },
+        { q: "What is phishing?", options: ["A fraudulent attempt to steal sensitive information by impersonating a trusted source", "A method to query data from databases", "A way to optimise website performance", "A type of computer virus that deletes files"], correct: 0 },
+        { q: "What does HTTPS indicate about a website?", options: ["The connection is encrypted and secure", "The site is hosted in the United States", "The site loads faster than HTTP", "The site has no advertisements"], correct: 0 },
+        { q: "What is two-factor authentication (2FA)?", options: ["A security process requiring two forms of verification", "Logging in from two devices simultaneously", "Having two separate passwords for one account", "Requiring two admins to approve a login"], correct: 0 },
+        // M-Pesa & Digital Payments
+        { q: "In M-Pesa STK Push, what must the user do to complete payment?", options: ["Enter their M-Pesa PIN on the phone prompt", "Refresh the browser page", "Send an SMS manually to Safaricom", "Call Safaricom customer care"], correct: 0 },
+        { q: "What is a Paybill number used for?", options: ["Receiving M-Pesa payments from customers", "Sending money overseas", "Buying mobile airtime", "Checking a bank balance"], correct: 0 },
+        { q: "What does 'mobile money' refer to?", options: ["Financial transactions conducted via a mobile phone", "Money printed on mobile devices", "Cash stored inside a SIM card", "Cryptocurrency held on phones"], correct: 0 },
+        { q: "What is the purpose of a transaction PIN in M-Pesa?", options: ["To authorize and secure every transaction", "To unlock the phone screen", "To access the Safaricom app only", "To reset the M-Pesa account password"], correct: 0 }
+    ];
 
-        scoreDiv.innerText = `You scored ${score} out of ${total} (${percent}%). ${level}`;
-        scoreDiv.style.color = percent >= 60 ? "MediumSeaGreen" : "Crimson";
+    function _shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function buildQuiz() {
+        const pool = _shuffle([...QUIZ_BANK]);
+        window._currentQuiz = pool.slice(0, 10);
+        const container = document.getElementById('quiz-container');
+        let html = '';
+        window._currentQuiz.forEach((item, idx) => {
+            const opts = _shuffle(item.options.map((text, i) => ({ text, correct: i === item.correct })));
+            html += `<div class="quiz-item"><p>${idx + 1}. ${item.q}</p>`;
+            opts.forEach(opt => {
+                const val = opt.correct ? '1' : '0';
+                html += `<label><input type="radio" name="q${idx}" value="${val}"> ${opt.text}</label>`;
+            });
+            html += `</div>`;
+        });
+        html += `<button onclick="checkQuiz()" class="btn-primary btn-full">Submit My Answers</button>`;
+        html += `<p id="quiz-score"></p>`;
+        container.innerHTML = html;
+    }
+
+    function checkQuiz() {
+        const total = window._currentQuiz.length;
+        let score = 0;
+        for (let i = 0; i < total; i++) {
+            const sel = document.querySelector(`input[name="q${i}"]:checked`);
+            if (sel && sel.value === '1') score++;
+        }
+        const percent = Math.round((score / total) * 100);
+        let level = 'Keep practicing!';
+        if (percent >= 85) level = 'Excellent work!';
+        else if (percent >= 60) level = 'Good effort!';
+        const scoreDiv = document.getElementById('quiz-score');
+        scoreDiv.innerHTML = `You scored ${score} out of ${total} (${percent}%). ${level}<br><button onclick="buildQuiz()" class="btn-primary" style="margin-top:14px;">&#8635; Try Again with New Questions</button>`;
+        scoreDiv.style.color = percent >= 60 ? 'MediumSeaGreen' : 'Crimson';
     }
 
     // --- Loading Spinner Logic ---
@@ -935,6 +987,9 @@ if (isset($_SESSION['fullname'])) {
         document.getElementById('loader-container').style.display = 'block';
         return true;
     }
+
+    // Initialise quiz on page load
+    document.addEventListener('DOMContentLoaded', function() { buildQuiz(); });
 
     function showDashboardTab(tab, button) {
         const bookmarksPane = document.getElementById('dashboard-bookmarks');

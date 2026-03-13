@@ -65,7 +65,7 @@
 <body>
 
 <div class="login-card">
-    <h1>Welcome Back</h1>
+    <h1>Books &amp; E-Learning Platform</h1>
     <p class="subtitle">Log in to access your library</p>
     
     <form action="../backend/api/login.php" method="POST">
