@@ -71,3 +71,101 @@
             "CustomerMessage":"Success. Request accepted for processing"
         }
         
+2026-03-13T12:52:02+03:00 RESPONSE: {
+            "MerchantRequestID":"1a92-4cc5-a2ed-c75662f585c31137",
+            "CheckoutRequestID":"ws_CO_13032026125201629727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T14:30:34+03:00 RESPONSE: {
+            "MerchantRequestID":"1a92-4cc5-a2ed-c75662f585c34689",
+            "CheckoutRequestID":"ws_CO_13032026143032531727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T14:37:26+03:00 RESPONSE: {
+            "MerchantRequestID":"493f-4151-9882-b1e56a8bac204813",
+            "CheckoutRequestID":"ws_CO_13032026143725960727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T15:51:40+03:00 RESPONSE: {
+            "MerchantRequestID":"1a92-4cc5-a2ed-c75662f585c36900",
+            "CheckoutRequestID":"ws_CO_13032026155140003727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T15:55:12+03:00 RESPONSE: {
+            "MerchantRequestID":"c316-4ea5-a53e-0b0a104ae9304467",
+            "CheckoutRequestID":"ws_CO_13032026155511523727516456",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T15:58:16+03:00 CALLBACK CHECK failed (url=https://triseptate-unproperly-crew.ngrok-free.dev/Books-Elearning-platform/backend/api/callback.php, http=0, err="")
+2026-03-13T15:59:47+03:00 RESPONSE: {
+            "MerchantRequestID":"1a92-4cc5-a2ed-c75662f585c37108",
+            "CheckoutRequestID":"ws_CO_13032026155946810727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T16:05:39+03:00 CALLBACK CHECK warning (url=https://triseptate-unproperly-crew.ngrok-free.dev/Books-Elearning-platform/backend/api/callback.php, http=0, err="", strict=0)
+2026-03-13T16:05:42+03:00 RESPONSE: {
+            "MerchantRequestID":"1a92-4cc5-a2ed-c75662f585c37283",
+            "CheckoutRequestID":"ws_CO_13032026160542046727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T17:04:25+03:00 RESPONSE: {
+            "MerchantRequestID":"bf6a-4b62-afb0-aa8f8eb10efe777",
+            "CheckoutRequestID":"ws_CO_13032026170421619704867515",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T17:28:33+03:00 RESPONSE: {
+            "MerchantRequestID":"8b70-4f91-a360-7f37c59d7f71368",
+            "CheckoutRequestID":"ws_CO_13032026172833036704867515",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T17:35:44+03:00 RESPONSE: {
+            "MerchantRequestID":"bf6a-4b62-afb0-aa8f8eb10efe2116",
+            "CheckoutRequestID":"ws_CO_13032026173540476794255278",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T17:39:30+03:00 RESPONSE: {
+            "MerchantRequestID":"8b70-4f91-a360-7f37c59d7f71817",
+            "CheckoutRequestID":"ws_CO_13032026173929249794255278",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
+2026-03-13T17:41:12+03:00 RESPONSE: {
+            "MerchantRequestID":"d2d9-402f-ba2b-9db25208295529",
+            "CheckoutRequestID":"ws_CO_13032026174110681727516126",
+            "ResponseCode": "0",
+            "ResponseDescription":"Success. Request accepted for processing",
+            "CustomerMessage":"Success. Request accepted for processing"
+        }
+        
